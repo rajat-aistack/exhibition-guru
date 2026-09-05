@@ -85,6 +85,9 @@ Thumbs.db
 
 # Logs
 *.log
+server.logs
+server_env_vars.txt
+test.py
 
 # Dynamic application data
 inquiries.json

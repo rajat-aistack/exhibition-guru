@@ -77,16 +77,22 @@ def load_config():
     return config
 
 import urllib.request
+import urllib.error
 
 def send_via_resend(name, phone, email, requirements, recipient, resend_key):
     url = "https://api.resend.com/emails"
+    from_address = os.environ.get("RESEND_FROM_EMAIL", "Exhibition Guru <onboarding@resend.dev>").strip()
+    # Allow overriding recipient specifically for Resend testing domain restriction
+    resend_to = os.environ.get("RESEND_TO_EMAIL", recipient).strip()
+
     headers = {
         "Authorization": f"Bearer {resend_key}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "ExhibitionGuruApp/1.0"
     }
     payload = {
-        "from": "Exhibition Guru <onboarding@resend.dev>",
-        "to": [recipient],
+        "from": from_address,
+        "to": [resend_to],
         "subject": f"NEW EXHIBITION ENQUIRY: {name}",
         "html": f"""
         <h3>New Exhibition Stall Inquiry Received!</h3>
@@ -102,8 +108,28 @@ def send_via_resend(name, phone, email, requirements, recipient, resend_key):
         data_bytes = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
         with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"[RESEND SUCCESS] Status: {resp.status}")
-            return True, "Success via Resend HTTPS API"
+            print(f"[RESEND SUCCESS] Status: {resp.status} - Sent to {resend_to}")
+            return True, f"Success via Resend HTTPS API (to {resend_to})"
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode('utf-8', errors='ignore')
+        print(f"[RESEND ERROR] HTTP {e.code}: {e.reason} - {err_body}")
+        
+        # If using onboarding domain and received validation error, try sending to account email
+        if "onboarding@resend.dev" in from_address and "validation_error" in err_body:
+            alt_to = os.environ.get("RESEND_FALLBACK_TO", "rajat.aistack@gmail.com").strip()
+            if alt_to and alt_to != resend_to:
+                print(f"[RESEND RETRY] Testing domain only allows registered email. Retrying with: {alt_to}")
+                payload["to"] = [alt_to]
+                try:
+                    data_bytes = json.dumps(payload).encode('utf-8')
+                    req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        print(f"[RESEND SUCCESS] Status: {resp.status} - Sent to fallback {alt_to}")
+                        return True, f"Success via Resend HTTPS API (to {alt_to})"
+                except Exception as retry_err:
+                    print(f"[RESEND RETRY ERROR] {retry_err}")
+
+        return False, f"Resend API error HTTP {e.code}: {err_body}"
     except Exception as e:
         print(f"[RESEND ERROR] {e}")
         return False, str(e)
@@ -112,7 +138,8 @@ def send_via_brevo(name, phone, email, requirements, sender_email, recipient, br
     url = "https://api.brevo.com/v3/smtp/email"
     headers = {
         "api-key": brevo_key,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "ExhibitionGuruApp/1.0"
     }
     payload = {
         "sender": {"name": "Exhibition Guru", "email": sender_email},
@@ -126,6 +153,10 @@ def send_via_brevo(name, phone, email, requirements, sender_email, recipient, br
         with urllib.request.urlopen(req, timeout=10) as resp:
             print(f"[BREVO SUCCESS] Status: {resp.status}")
             return True, "Success via Brevo HTTPS API"
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode('utf-8', errors='ignore')
+        print(f"[BREVO ERROR] HTTP {e.code}: {e.reason} - {err_body}")
+        return False, f"Brevo API error HTTP {e.code}: {err_body}"
     except Exception as e:
         print(f"[BREVO ERROR] {e}")
         return False, str(e)
