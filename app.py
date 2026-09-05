@@ -5,36 +5,63 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, jsonify, request, send_from_directory
+from dotenv import load_dotenv
+
+# Load environment variables from .env file for local development
+load_dotenv()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+app.secret_key = os.environ.get('SECRET_KEY', 'exhibition_guru_default_secret_key_2026')
 
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'config.json')
 INQUIRIES_FILE = os.path.join(os.path.dirname(__file__), 'inquiries.json')
 
 def load_config():
+    config = {}
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                config = json.load(f)
         except Exception as e:
             print(f"Error reading config.json: {e}")
-    return {}
+
+    # Override / populate sensitive settings from environment variables (.env locally or platform environment in deployment)
+    email_cfg = config.get("email_config", {})
+
+    email_cfg["smtp_server"] = os.environ.get("SMTP_SERVER", email_cfg.get("smtp_server", "smtp.gmail.com"))
+    email_cfg["smtp_port"] = int(os.environ.get("SMTP_PORT", email_cfg.get("smtp_port", 587)))
+    email_cfg["sender_email"] = os.environ.get("SENDER_EMAIL", email_cfg.get("sender_email", "rajat.aistack@gmail.com"))
+    
+    # Check SENDER_PASSWORD or GMAIL_APP_PASSWORD from environment first
+    env_password = os.environ.get("SENDER_PASSWORD") or os.environ.get("GMAIL_APP_PASSWORD")
+    email_cfg["sender_password"] = env_password if env_password is not None else email_cfg.get("sender_password", "")
+    
+    email_cfg["recipient_email"] = os.environ.get("RECIPIENT_EMAIL", email_cfg.get("recipient_email", email_cfg["sender_email"]))
+
+    enable_email_env = os.environ.get("ENABLE_EMAIL")
+    if enable_email_env is not None:
+        email_cfg["enable_email"] = enable_email_env.lower() in ("true", "1", "yes")
+    elif "enable_email" not in email_cfg:
+        email_cfg["enable_email"] = True
+
+    config["email_config"] = email_cfg
+    return config
 
 def send_inquiry_email(inquiry_data, config):
     email_cfg = config.get("email_config", {})
     if not email_cfg.get("enable_email", True):
-        print("[EMAIL] Auto email notification is disabled in config.json")
-        return False, "Disabled in config"
+        print("[EMAIL] Auto email notification is disabled.")
+        return False, "Disabled in environment configuration"
 
     smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com")
     smtp_port = int(email_cfg.get("smtp_port", 587))
-    sender_email = email_cfg.get("sender_email", "rajat.aistack@gmail.com")
+    sender_email = email_cfg.get("sender_email", "")
     sender_password = email_cfg.get("sender_password", "")
     recipient_email = email_cfg.get("recipient_email", sender_email)
 
     if not sender_password or sender_password == "YOUR_GMAIL_APP_PASSWORD":
-        print("[EMAIL WARNING] sender_password is empty or set to placeholder in config.json. Skipping email delivery.")
-        return False, "Password not set in config.json"
+        print("[EMAIL WARNING] SENDER_PASSWORD is not set in environment or .env. Skipping email delivery.")
+        return False, "SENDER_PASSWORD environment variable not configured"
 
     name = inquiry_data.get("name", "N/A")
     phone = inquiry_data.get("phone", "N/A")

@@ -26,7 +26,7 @@
         "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
         "sender_email": "rajat.aistack@gmail.com",
-        "sender_password": "qfqeuuczapheaucl",
+        "sender_password": "",
         "recipient_email": "rajat.171719@gmail.com",
         "enable_email": true
     },

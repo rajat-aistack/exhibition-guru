@@ -116,16 +116,47 @@ Your project already includes the required files:
 
 ---
 
-## 🔒 Optional: Environment Variables (Email Notifications)
+## 🔒 Setting Environment Variables on Render
 
-If you configure live SMTP email delivery via `config.json`, you can manage sensitive credentials safely:
-1. Go to your Render Web Service dashboard.
-2. Click **Environment** in the left sidebar.
-3. Click **Add Environment Variable** (e.g., `SENDER_PASSWORD`).
-4. Save changes. Render will automatically redeploy with the new settings.
+For deployed applications, sensitive configuration (such as passwords, secret keys, and SMTP settings) should be added directly in the **Render Dashboard**:
+
+1. Go to your **Render Web Service** dashboard.
+2. Select **Environment** from the left sidebar navigation menu.
+3. Click **Add Environment Variable** and enter the following key-value pairs:
+
+| Variable Name | Description | Example Value |
+| :--- | :--- | :--- |
+| `SECRET_KEY` | Flask Session / App Secret Key | `exhibition_guru_prod_secret_2026` |
+| `SENDER_EMAIL` | Email used to send quote notifications | `rajat.aistack@gmail.com` |
+| `SENDER_PASSWORD` | Gmail App Password (16-char code) | `your_gmail_app_password` |
+| `RECIPIENT_EMAIL` | Destination email for inquiries | `rajat.171719@gmail.com` |
+| `SMTP_SERVER` | SMTP Server | `smtp.gmail.com` |
+| `SMTP_PORT` | SMTP Port | `587` |
+| `ENABLE_EMAIL` | Enable auto email delivery | `true` |
+
+4. Click **Save Changes**. Render will automatically rebuild and deploy your application with the new environment variables!
+
+---
+
+## 💻 Local Development Setup (.env)
+
+For local development on your machine:
+1. Create a `.env` file in the project root directory (a template is provided in `.env.example`).
+2. Add your credentials:
+   ```env
+   SECRET_KEY=exhibition_guru_local_secret
+   SENDER_EMAIL=rajat.aistack@gmail.com
+   SENDER_PASSWORD=your_gmail_app_password
+   RECIPIENT_EMAIL=rajat.171719@gmail.com
+   SMTP_SERVER=smtp.gmail.com
+   SMTP_PORT=587
+   ENABLE_EMAIL=true
+   ```
+3. Run `python app.py` or `gunicorn app:app`. The app will automatically load settings from `.env`.
 
 ---
 
 ## 🔄 Automatic Redeployments
 
 Every time you commit and push new code to your GitHub `main` branch, Render will automatically trigger a build and redeploy your live website with zero downtime!
+
