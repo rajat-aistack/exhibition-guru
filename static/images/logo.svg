@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 240" width="100%" height="100%">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="redGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF2A35" />
+      <stop offset="100%" stop-color="#C40510" />
+    </linearGradient>
+    
+    <linearGradient id="whiteGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#E0E0E0" />
+    </linearGradient>
+
+    <linearGradient id="bannerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C40510" />
+      <stop offset="50%" stop-color="#E50914" />
+      <stop offset="100%" stop-color="#990007" />
+    </linearGradient>
+
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- SHIELD & CROWN EMBLEM -->
+  <g transform="translate(10, 10)">
+    <!-- Crown -->
+    <path d="M 50,22 L 68,48 L 85,28 L 102,48 L 120,22 L 112,60 L 58,60 Z" fill="url(#whiteGradient)" />
+    <!-- Crown Jewels -->
+    <circle cx="50" cy="20" r="3.5" fill="#FFFFFF" />
+    <circle cx="85" cy="25" r="3.5" fill="#FFFFFF" />
+    <circle cx="120" cy="20" r="3.5" fill="#FFFFFF" />
+    <path d="M 58,62 L 112,62 L 110,66 L 60,66 Z" fill="url(#redGradient)" />
+
+    <!-- Left Shield (E - White) -->
+    <path d="M 55,70 L 83,70 L 83,138 L 55,120 Z" fill="url(#whiteGradient)" />
+    <path d="M 62,82 L 83,82 L 83,92 L 68,92 L 68,100 L 83,100 L 83,110 L 62,110 Z" fill="#111115" />
+
+    <!-- Right Shield (G - Red) -->
+    <path d="M 87,70 L 115,70 L 115,120 L 87,138 Z" fill="url(#redGradient)" />
+    <path d="M 87,82 L 108,82 L 108,92 L 97,92 L 97,118 L 87,112 Z" fill="#111115" />
+    <path d="M 97,100 L 108,100 L 108,114 L 97,114 Z" fill="url(#redGradient)" />
+  </g>
+
+  <!-- BRAND NAME TEXT -->
+  <!-- "Exhibition" -->
+  <text x="170" y="105" font-family="'Montserrat', 'Outfit', 'Helvetica', sans-serif" font-weight="800" font-size="44" fill="#FFFFFF" letter-spacing="0.5">Exhibition</text>
+  
+  <!-- "Guru" -->
+  <text x="415" y="105" font-family="'Montserrat', 'Outfit', 'Helvetica', sans-serif" font-weight="800" font-size="44" fill="url(#redGradient)" filter="url(#glow)">Guru</text>
+
+  <!-- TAGLINE RIBBON BANNER -->
+  <g transform="translate(170, 125)">
+    <!-- Banner shape with angled cutouts -->
+    <polygon points="0,0 270,0 260,34 10,34" fill="url(#bannerGradient)" />
+    
+    <!-- Tagline Text -->
+    <text x="25" y="23" font-family="'Montserrat', 'Inter', sans-serif" font-weight="700" font-size="16" fill="#FFFFFF" letter-spacing="1">You Think</text>
+    
+    <!-- Dark contrast block for "We Create" -->
+    <rect x="125" y="4" width="125" height="26" fill="#111115" rx="3" />
+    <text x="135" y="23" font-family="'Montserrat', 'Inter', sans-serif" font-weight="700" font-size="16" fill="url(#redGradient)" letter-spacing="1">We Create</text>
+  </g>
+</svg>

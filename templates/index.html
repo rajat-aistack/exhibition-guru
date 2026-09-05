@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exhibition Guru | PAN India Exhibition Stall Design & Corporate Event Management</title>
+  <meta name="description" content="Exhibition Guru is India's leading corporate event management and exhibition stall design company. We build custom 3D booths, mezzanine pavilions, and turnkey trade show setups PAN India. You Think, We Create.">
+  <meta name="keywords" content="Exhibition Stall Design India, 3D Stall Fabrication Delhi Mumbai Bangalore, Trade Show Event Management, Corporate Exhibition Pavilions, Exhibition Guru">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+  <!-- Font Awesome Icons 6.5.1 (Includes X / Twitter icon) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="#" class="brand-logo" title="Exhibition Guru Home">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Exhibition Guru - You Think We Create">
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#hero" class="active">Home</a></li>
+          <li><a href="#pan-india">PAN India</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#portfolio">Portfolio</a></li>
+          <li><a href="#process">Our Process</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#contact">Contact & Map</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="#contact" class="btn-primary">
+          <i class="fa-solid fa-paper-plane"></i> Get Free Quote
+        </a>
+        <button class="menu-toggle" aria-label="Toggle Menu">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO SECTION -->
+    <section id="hero" class="hero">
+      <div class="container hero-wrapper">
+        
+        <!-- Left Hero Content -->
+        <div class="hero-content">
+          <span class="badge-red">
+            <i class="fa-solid fa-star"></i> PAN India Exhibition Experts
+          </span>
+
+          <h1 class="hero-title">
+            Transforming Corporate Visions Into <span class="text-gradient-red">Award-Winning Exhibition Pavilions</span>
+          </h1>
+
+          <p class="hero-description">
+            From 3D stall conceptualization to flawless on-site fabrication across India's premier exhibition centers. <strong>You Think, We Create.</strong>
+          </p>
+
+          <div class="hero-actions" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="#portfolio" class="btn-primary">
+              <i class="fa-solid fa-eye"></i> See Our Work
+            </a>
+            <a href="#process" class="btn-secondary">
+              <i class="fa-solid fa-timeline"></i> Our 4-Step Process
+            </a>
+          </div>
+
+          <div class="hero-stats">
+            <div class="stat-item">
+              <h3>500+</h3>
+              <p>Exhibitions Delivered</p>
+            </div>
+            <div class="stat-item">
+              <h3>PAN India</h3>
+              <p>15+ Major Trade Hubs</p>
+            </div>
+            <div class="stat-item">
+              <h3>100%</h3>
+              <p>On-Time Handover</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Hero Visual Frame (Matching Reference Image) -->
+        <div class="hero-visual">
+          <div class="showcase-frame">
+            <div class="showcase-header-tag">NEW PORTFOLIO SHOWCASE!</div>
+
+            <div class="showcase-logo">
+              <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Exhibition Guru Crown Logo">
+            </div>
+
+            <div class="showcase-cta-btn">
+              <a href="#portfolio" class="badge-gold">
+                <i class="fa-solid fa-layer-group"></i> SEE OUR WORK
+              </a>
+            </div>
+
+            <div class="showcase-gallery-mini">
+              <div class="mini-thumb">
+                <img src="{{ url_for('static', filename='images/portfolio/tech_stall.png') }}" alt="3D Tech Exhibition Booth">
+              </div>
+              <div class="mini-thumb">
+                <img src="{{ url_for('static', filename='images/portfolio/luxury_pavilion.png') }}" alt="Luxury Exhibition Pavilion">
+              </div>
+              <div class="mini-thumb">
+                <img src="{{ url_for('static', filename='images/portfolio/mezzanine_booth.png') }}" alt="Mezzanine Exhibition Booth">
+              </div>
+            </div>
+
+            <div class="showcase-footer-callout">
+              LET'S BUILD <span class="text-gradient-red">YOUR VISION!</span>
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500; margin-top: 0.4rem;">
+                www.exhibitionguru.com
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PAN INDIA SECTION -->
+    <section id="pan-india" class="section" style="background: rgba(18, 18, 23, 0.5);">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-gold">Nationwide Execution Network</span>
+          <h2 class="section-title">PAN India Service Coverage</h2>
+          <p class="section-desc">
+            We operate in all major exhibition hubs across India with in-house fabrication workshops, experienced project managers, and 24/7 on-site support team.
+          </p>
+        </div>
+
+        <div class="pan-india-grid">
+          {% if config.pan_india_hubs %}
+            {% for hub in config.pan_india_hubs %}
+            <div class="city-card">
+              <span class="hub-tag">{{ hub.status }}</span>
+              <div class="city-icon"><i class="fa-solid fa-city" style="color: var(--primary-red);"></i></div>
+              <h3>{{ hub.city }}</h3>
+              <p><i class="fa-solid fa-location-dot" style="color: var(--accent-gold); margin-right: 4px;"></i> {{ hub.venue }}</p>
+            </div>
+            {% endfor %}
+          {% else %}
+            <!-- Fallback Hubs -->
+            <div class="city-card">
+              <span class="hub-tag">Primary Hub</span>
+              <div class="city-icon"><i class="fa-solid fa-building-flag" style="color: var(--primary-red);"></i></div>
+              <h3>Delhi NCR</h3>
+              <p>Pragati Maidan & India Expo Mart Greater Noida</p>
+            </div>
+            <div class="city-card">
+              <span class="hub-tag">Primary Hub</span>
+              <div class="city-icon"><i class="fa-solid fa-building" style="color: var(--primary-red);"></i></div>
+              <h3>Mumbai</h3>
+              <p>NESCO Goregaon & Jio World Convention Centre</p>
+            </div>
+            <div class="city-card">
+              <span class="hub-tag">Primary Hub</span>
+              <div class="city-icon"><i class="fa-solid fa-microchip" style="color: var(--primary-red);"></i></div>
+              <h3>Bengaluru</h3>
+              <p>BIEC (Bangalore International Exhibition Centre)</p>
+            </div>
+            <div class="city-card">
+              <span class="hub-tag">Regional Hub</span>
+              <div class="city-icon"><i class="fa-solid fa-industry" style="color: var(--primary-red);"></i></div>
+              <h3>Hyderabad</h3>
+              <p>HITEX Exhibition Centre</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="services" class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-red">What We Do</span>
+          <h2 class="section-title">End-to-End Exhibition Solutions</h2>
+          <p class="section-desc">
+            From preliminary 3D CAD modeling to turnkey structural fabrication and audio-visual setup, we handle every detail so your brand shines.
+          </p>
+        </div>
+
+        <div class="services-grid">
+          <!-- Service 1 -->
+          <div class="service-card">
+            <div>
+              <div class="service-icon"><i class="fa-solid fa-cubes"></i></div>
+              <h3>Custom 3D Exhibition Booths</h3>
+              <p>Tailor-made 3D stall designs engineered to maximize brand visibility, foot traffic flow, and visitor engagement.</p>
+              <ul class="service-features">
+                <li>High-resolution 3D photorealistic renders</li>
+                <li>Custom branding pillars & lightboxes</li>
+                <li>Ergonomic product display podiums</li>
+              </ul>
+            </div>
+            <a href="#contact" class="btn-secondary" style="width: 100%; text-align: center;">Inquire Now</a>
+          </div>
+
+          <!-- Service 2 -->
+          <div class="service-card">
+            <div>
+              <div class="service-icon"><i class="fa-solid fa-layer-group"></i></div>
+              <h3>Mezzanine Double-Decker Stands</h3>
+              <p>Maximize your floor space with multi-level mezzanine structures for private VIP corporate lounges and high-level meetings.</p>
+              <ul class="service-features">
+                <li>Structural safety certification</li>
+                <li>Glass railings & VIP meeting suites</li>
+                <li>Integrated audio-visual presentation hubs</li>
+              </ul>
+            </div>
+            <a href="#contact" class="btn-secondary" style="width: 100%; text-align: center;">Inquire Now</a>
+          </div>
+
+          <!-- Service 3 -->
+          <div class="service-card">
+            <div>
+              <div class="service-icon"><i class="fa-solid fa-gem"></i></div>
+              <h3>Luxury Corporate Pavilions</h3>
+              <p>Architectural brand pavilions built with premium wood finishes, ambient warm lighting, and corporate hospitality zones.</p>
+              <ul class="service-features">
+                <li>Custom carpentry & acrylic finishes</li>
+                <li>Executive reception desks & lounge bars</li>
+                <li>Integrated LED screen walls</li>
+              </ul>
+            </div>
+            <a href="#contact" class="btn-secondary" style="width: 100%; text-align: center;">Inquire Now</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PORTFOLIO GALLERY -->
+    <section id="portfolio" class="section" style="background: rgba(18, 18, 23, 0.5);">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-gold">Our Recent Work</span>
+          <h2 class="section-title">Exhibition Showcase Gallery</h2>
+          <p class="section-desc">
+            Explore our portfolio of high-converting exhibition stalls built for corporate clients across India.
+          </p>
+        </div>
+
+        <div class="portfolio-filter">
+          <button class="filter-btn active" data-filter="all">All Projects</button>
+          <button class="filter-btn" data-filter="tech">3D Tech Pavilions</button>
+          <button class="filter-btn" data-filter="luxury">Luxury Wood Pavilions</button>
+          <button class="filter-btn" data-filter="mezzanine">Mezzanine Booths</button>
+          <button class="filter-btn" data-filter="modular">Modular Displays</button>
+        </div>
+
+        <div class="portfolio-grid">
+          <!-- Item 1 -->
+          <div class="portfolio-item" data-category="tech">
+            <div class="portfolio-img">
+              <img src="{{ url_for('static', filename='images/portfolio/tech_stall.png') }}" alt="3D Tech Pavilion Design">
+              <div class="portfolio-overlay">
+                <button class="btn-primary view-project-btn"><i class="fa-solid fa-magnifying-glass-plus"></i> View Renders</button>
+              </div>
+            </div>
+            <div class="portfolio-info">
+              <span class="badge-gold">3D Tech Pavilion</span>
+              <h3 style="margin-top: 0.4rem;">Futuristic Tech Expo Stall</h3>
+              <p>Size: 12m x 9m | 3-Side Open | Location: Pragati Maidan New Delhi</p>
+            </div>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="portfolio-item" data-category="luxury">
+            <div class="portfolio-img">
+              <img src="{{ url_for('static', filename='images/portfolio/luxury_pavilion.png') }}" alt="Luxury Architectural Wood Pavilion">
+              <div class="portfolio-overlay">
+                <button class="btn-primary view-project-btn"><i class="fa-solid fa-magnifying-glass-plus"></i> View Renders</button>
+              </div>
+            </div>
+            <div class="portfolio-info">
+              <span class="badge-gold">Luxury Wood Pavilion</span>
+              <h3 style="margin-top: 0.4rem;">Premium Brand Pavilion</h3>
+              <p>Size: 10m x 8m | Island Booth | Location: Jio World Convention Centre Mumbai</p>
+            </div>
+          </div>
+
+          <!-- Item 3 -->
+          <div class="portfolio-item" data-category="mezzanine">
+            <div class="portfolio-img">
+              <img src="{{ url_for('static', filename='images/portfolio/mezzanine_booth.png') }}" alt="Double Decker Mezzanine Booth">
+              <div class="portfolio-overlay">
+                <button class="btn-primary view-project-btn"><i class="fa-solid fa-magnifying-glass-plus"></i> View Renders</button>
+              </div>
+            </div>
+            <div class="portfolio-info">
+              <span class="badge-gold">Mezzanine Booth</span>
+              <h3 style="margin-top: 0.4rem;">Two-Tier Corporate Lounge</h3>
+              <p>Size: 15m x 10m | 2-Tier VIP Lounge | Location: BIEC Bengaluru</p>
+            </div>
+          </div>
+
+          <!-- Item 4 -->
+          <div class="portfolio-item" data-category="modular">
+            <div class="portfolio-img">
+              <img src="{{ url_for('static', filename='images/portfolio/modular_display.png') }}" alt="Modular Fabric Lightbox Display">
+              <div class="portfolio-overlay">
+                <button class="btn-primary view-project-btn"><i class="fa-solid fa-magnifying-glass-plus"></i> View Renders</button>
+              </div>
+            </div>
+            <div class="portfolio-info">
+              <span class="badge-gold">Modular Display</span>
+              <h3 style="margin-top: 0.4rem;">Eco-Friendly Backlit Stand</h3>
+              <p>Size: 6m x 3m | 2-Side Corner | Location: HITEX Hyderabad</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRADE EXPOS COVERAGE TICKER -->
+    <div class="expo-ticker-section">
+      <div class="container">
+        <div class="expo-tags-flex">
+          <span style="font-family: var(--font-heading); font-size: 0.85rem; font-weight: 800; color: var(--primary-red); text-transform: uppercase; letter-spacing: 1px; margin-right: 0.5rem;">
+            <i class="fa-solid fa-trophy"></i> Premier Expos Served:
+          </span>
+          <div class="expo-pill"><i class="fa-solid fa-bolt"></i> ELECRAMA</div>
+          <div class="expo-pill"><i class="fa-solid fa-car"></i> Auto Expo</div>
+          <div class="expo-pill"><i class="fa-solid fa-building"></i> ACETECH</div>
+          <div class="expo-pill"><i class="fa-solid fa-capsules"></i> CPHI India</div>
+          <div class="expo-pill"><i class="fa-solid fa-satellite-dish"></i> Convergence India</div>
+          <div class="expo-pill"><i class="fa-solid fa-industry"></i> PLASTINDIA</div>
+          <div class="expo-pill"><i class="fa-solid fa-robot"></i> Automation Expo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKFLOW PROCESS SECTION -->
+    <section id="process" class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-red">Turnkey Execution</span>
+          <h2 class="section-title">How A Project Runs with Us</h2>
+          <p class="section-desc">
+            From your initial brief to on-site handover, every stage is managed seamlessly in-house to deliver stress-free exhibition execution.
+          </p>
+        </div>
+
+        <div class="process-grid">
+          <!-- Step 1 -->
+          <div class="process-card">
+            <span class="process-step-num">01</span>
+            <div class="process-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+            <h3>Brief & Strategy</h3>
+            <p>We analyze your booth dimensions, hall layout, sightlines, target audience, and product display requirements to establish clear objectives.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="process-card">
+            <span class="process-step-num">02</span>
+            <div class="process-icon"><i class="fa-solid fa-cube"></i></div>
+            <h3>3D Architectural Design</h3>
+            <p>Our spatial designers build photorealistic 3D renders with lighting, graphics, and ergonomics, iterating until you give 100% approval.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="process-card">
+            <span class="process-step-num">03</span>
+            <div class="process-icon"><i class="fa-solid fa-hammer"></i></div>
+            <h3>Workshop Fabrication</h3>
+            <p>In-house carpentry, metal framing, fabric lightbox printing, and pre-assembly electrical checks are completed prior to venue dispatch.</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div class="process-card">
+            <span class="process-step-num">04</span>
+            <div class="process-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+            <h3>Supervised On-Site Handover</h3>
+            <p>Our on-site project managers handle venue entry formalities, build-up, touch-ups, and supervised dismantling after show close.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHY CHOOSE US SECTION -->
+    <section id="why-choose-us" class="section" style="background: rgba(18, 18, 23, 0.5);">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-gold">Why Brands Trust Exhibition Guru</span>
+          <h2 class="section-title">Built For Excellence & Peace of Mind</h2>
+          <p class="section-desc">
+            Combining innovative design aesthetics with rigorous workshop execution so your brand stands out on the exhibition floor.
+          </p>
+        </div>
+
+        <div class="why-us-grid">
+          <div class="why-card">
+            <div class="why-card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <h3>Single Point Ownership</h3>
+            <p>Design and build sit with one unified team, ensuring the stall approved in 3D is identical to the physical stall delivered at the venue.</p>
+          </div>
+
+          <div class="why-card">
+            <div class="why-card-icon"><i class="fa-solid fa-industry"></i></div>
+            <h3>In-House Production</h3>
+            <p>Complete control over carpentry, metal fabrication, acrylic finishing, and high-resolution printing with zero sub-contracting delays.</p>
+          </div>
+
+          <div class="why-card">
+            <div class="why-card-icon"><i class="fa-solid fa-user-gear"></i></div>
+            <h3>24/7 On-Site Supervision</h3>
+            <p>Experienced project managers remain on-site during venue build-up and exhibition hours to solve any emergency on the spot.</p>
+          </div>
+
+          <div class="why-card">
+            <div class="why-card-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+            <h3>Pan-India Operations</h3>
+            <p>Turnkey execution capabilities across Mumbai, Delhi NCR, Bengaluru, Hyderabad, Pune, Ahmedabad, Chennai, and Kolkata.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FREQUENTLY ASKED QUESTIONS (FAQ) -->
+    <section id="faq" class="section">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-red">Got Questions?</span>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+          <p class="section-desc">
+            Everything you need to know about our exhibition stall design, fabrication, and event management process.
+          </p>
+        </div>
+
+        <div class="faq-wrapper">
+          <div class="faq-item active">
+            <div class="faq-header">
+              <span>What services does Exhibition Guru provide?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-body">
+              Exhibition Guru offers end-to-end corporate event and exhibition solutions: custom 3D exhibition booth design, workshop fabrication, double-decker mezzanine stalls, luxury pavilions, high-resolution printing, audio-visual stage setups, and on-site event management across India.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-header">
+              <span>Which cities and trade centers in India do you cover?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-body">
+              We execute projects PAN India! Our primary exhibition hubs include Delhi NCR (Pragati Maidan & India Expo Mart), Mumbai (NESCO & Jio World), Bengaluru (BIEC), Hyderabad (HITEX), Pune, Ahmedabad, Chennai, and Kolkata.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-header">
+              <span>How long before an exhibition should we book our stall design?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-body">
+              We recommend starting 3 to 5 weeks prior to the show dates to allow sufficient time for 3D iterations, organizer approvals, workshop fabrication, and pre-assembly quality checks. However, express execution is also available for urgent timelines.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-header">
+              <span>How do I request a custom 3D design and quotation?</span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </div>
+            <div class="faq-body">
+              Simply fill in the inquiry form below, call our direct line, or message us on WhatsApp with your stall dimensions, venue name, and event dates. Our design team will get back to you within 2 hours with a costed proposal.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT & MAP SECTION -->
+    <section id="contact" class="section" style="background: rgba(18, 18, 23, 0.5);">
+      <div class="container">
+        <div class="section-header">
+          <span class="badge-gold">Get In Touch</span>
+          <h2 class="section-title">Let's Discuss Your Exhibition Goals</h2>
+          <p class="section-desc">
+            Reach out to our project managers for instant quotes, 3D stall proposals, or office visits.
+          </p>
+        </div>
+
+        <div class="contact-wrapper">
+          <!-- Contact Details & Form -->
+          <div class="contact-card">
+            <div class="contact-card-header">
+              <span class="badge-red" style="margin-bottom: 0.8rem;">
+                <i class="fa-solid fa-bolt"></i> Fast 2-Hour Response Guaranteed
+              </span>
+              <h3>Request Free 3D Proposal</h3>
+              <p>Share your event requirements below to receive a custom 3D design and costed proposal.</p>
+            </div>
+
+            <div id="form-response" style="display: none; margin-bottom: 1.5rem; padding: 1rem; border-radius: 8px;"></div>
+
+            <form id="quote-form">
+              <div class="form-group" style="margin-bottom: 1.2rem;">
+                <label style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; display: block;">Full Name / Company Name *</label>
+                <div class="input-icon-group">
+                  <input type="text" name="name" class="form-control" placeholder="e.g. Rahul Sharma (TechCorp Ltd.)" required>
+                  <i class="fa-solid fa-user input-icon"></i>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem;">
+                <div class="form-group">
+                  <label style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; display: block;">Mobile / Phone *</label>
+                  <div class="input-icon-group">
+                    <input type="tel" name="phone" class="form-control" placeholder="+91 98765 43210" required>
+                    <i class="fa-solid fa-phone input-icon"></i>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; display: block;">Email Address *</label>
+                  <div class="input-icon-group">
+                    <input type="email" name="email" class="form-control" placeholder="rahul@company.com" required>
+                    <i class="fa-solid fa-envelope input-icon"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1.8rem;">
+                <label style="font-size: 0.9rem; font-weight: 600; color: #fff; margin-bottom: 0.4rem; display: block;">Event Name & Stall Dimensions</label>
+                <div class="input-icon-group">
+                  <textarea name="requirements" class="form-control" rows="3" placeholder="e.g. ELECRAMA 2026, 36 sqm stall, Pragati Maidan New Delhi"></textarea>
+                  <i class="fa-solid fa-pen-to-square input-icon"></i>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-submit-enquiry">
+                <i class="fa-solid fa-paper-plane"></i> Send Enquiry & Get 3D Proposal
+              </button>
+            </form>
+
+            <div class="contact-quick-pills">
+              <a href="tel:+919876543210" class="quick-pill-item phone-link">
+                <div class="quick-pill-icon"><i class="fa-solid fa-phone-volume"></i></div>
+                <div class="quick-pill-info">
+                  <span>Direct Call</span>
+                  <strong class="phone-text">{{ config.contact_info.phone if config.contact_info else '+91 98765 43210' }}</strong>
+                </div>
+              </a>
+
+              <a href="https://wa.me/919876543210" target="_blank" rel="noopener" class="quick-pill-item whatsapp-link">
+                <div class="quick-pill-icon" style="background: rgba(37, 211, 102, 0.15); color: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
+                <div class="quick-pill-info">
+                  <span>WhatsApp Chat</span>
+                  <strong>Instant Connect</strong>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Embedded Google Map -->
+          <div class="map-container">
+            <iframe id="google-map-iframe" 
+                    src="{{ config.google_map.embed_url if config and config.google_map else 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3502.215444827027!2d77.22851457635677!3d28.62325377566937!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd33d9f10a8f%3A0x6b8764834ff8c2b5!2sPragati%20Maidan!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin' }}" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+
+            <div class="map-floating-btn">
+              <a href="{{ config.google_map.direct_url if config and config.google_map else 'https://maps.app.goo.gl/WJ2xu9snzJ9WWeG36' }}" target="_blank" rel="noopener noreferrer" class="btn-primary google-map-btn">
+                <i class="fa-solid fa-map-location-dot"></i> Open Location in Google Maps
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="#" class="brand-logo" style="margin-bottom: 1rem;">
+            <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="Exhibition Guru Logo" style="height: 55px;">
+          </a>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 1rem; max-width: 340px;">
+            Exhibition Guru is India's leading event management & 3D exhibition booth setup company. Delivering excellence PAN India.
+          </p>
+          <div style="margin-top: 1.5rem;" class="social-links">
+            <a href="{{ config.social_media.facebook if config and config.social_media else '#' }}" target="_blank" rel="noopener" class="social-icon social-facebook" title="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+            <a href="{{ config.social_media.instagram if config and config.social_media else '#' }}" target="_blank" rel="noopener" class="social-icon social-instagram" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="{{ config.social_media.linkedin if config and config.social_media else '#' }}" target="_blank" rel="noopener" class="social-icon social-linkedin" title="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+            <a href="{{ config.social_media.youtube if config and config.social_media else '#' }}" target="_blank" rel="noopener" class="social-icon social-youtube" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+            <a href="{{ config.social_media.x_twitter if config and config.social_media else '#' }}" target="_blank" rel="noopener" class="social-icon social-twitter" title="X (Twitter)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="display: block;">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="margin-bottom: 1.2rem; color: var(--text-main);">Quick Links</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+            <li><a href="#hero" style="color: var(--text-muted);">Home</a></li>
+            <li><a href="#pan-india" style="color: var(--text-muted);">PAN India Centers</a></li>
+            <li><a href="#services" style="color: var(--text-muted);">Services</a></li>
+            <li><a href="#portfolio" style="color: var(--text-muted);">Portfolio Gallery</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="margin-bottom: 1.2rem; color: var(--text-main);">Services</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.6rem; font-size: 0.9rem;">
+            <li><a href="#services" style="color: var(--text-muted);">3D Stall Designing</a></li>
+            <li><a href="#services" style="color: var(--text-muted);">Mezzanine Booths</a></li>
+            <li><a href="#services" style="color: var(--text-muted);">Corporate Pavilions</a></li>
+            <li><a href="#services" style="color: var(--text-muted);">Audio-Visual Setup</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="margin-bottom: 1.2rem; color: var(--text-main);">Contact Info</h4>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;" class="phone-text">+91 98765 43210</p>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;" class="email-text">info@exhibitionguru.com</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);" class="address-text">PAN India Services</p>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Exhibition Guru. All rights reserved. | <strong>You Think We Create</strong></p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- FLOATING WHATSAPP BUTTON -->
+  <a href="https://wa.me/919876543210?text=Hi%20Exhibition%20Guru%2C%20I%20want%20to%20inquire%20about%20exhibition%20stall%20design" target="_blank" rel="noopener" class="whatsapp-float whatsapp-link" title="Chat on WhatsApp">
+    <i class="fa-brands fa-whatsapp"></i>
+  </a>
+
+  <!-- LIGHTBOX MODAL -->
+  <div id="lightbox-modal" class="modal">
+    <div class="modal-content">
+      <button class="modal-close">&times;</button>
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr;">
+        <div style="background: #000; display: flex; align-items: center; justify-content: center;">
+          <img id="modal-img" src="" alt="Exhibition Booth Design" style="max-width: 100%; max-height: 500px; object-fit: contain;">
+        </div>
+        <div style="padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <span id="modal-category" class="badge-gold">Category</span>
+            <h2 id="modal-title" style="margin-top: 0.8rem; font-size: 1.8rem;">Project Title</h2>
+            <p id="modal-specs" style="color: var(--text-muted); margin-top: 1rem; font-size: 0.95rem;">Specs details...</p>
+          </div>
+          <div>
+            <a href="#contact" class="btn-primary" onclick="document.querySelector('#lightbox-modal').classList.remove('active');" style="width: 100%;">
+              <i class="fa-solid fa-paper-plane"></i> Get Quote For Similar Stall
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="{{ url_for('static', filename='js/config-loader.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

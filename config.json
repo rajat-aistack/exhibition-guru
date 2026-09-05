@@ -1,0 +1,75 @@
+{
+    "company_name": "Exhibition Guru",
+    "tagline": "You Think We Create",
+    "service_coverage": "PAN India",
+    "social_media": {
+        "facebook": "https://www.facebook.com/exhibitionguru",
+        "instagram": "https://www.instagram.com/exhibitionguru",
+        "linkedin": "https://www.linkedin.com/company/exhibitionguru",
+        "whatsapp": "https://wa.me/919876543210?text=Hi%20Exhibition%20Guru%2C%20I%20want%20to%20inquire%20about%20exhibition%20stall%20design%20and%20fabrication",
+        "youtube": "https://www.youtube.com/@exhibitionguru",
+        "x_twitter": "https://x.com/exhibitionguru"
+    },
+    "contact_info": {
+        "phone": "+91 98765 43210",
+        "alternate_phone": "+91 98100 12345",
+        "email": "info@exhibitionguru.com",
+        "sales_email": "sales@exhibitionguru.com",
+        "address": "PAN India Exhibition Services | Head Office: Connaught Place, New Delhi",
+        "working_hours": "Mon - Sat: 9:30 AM - 7:30 PM IST"
+    },
+    "google_map": {
+        "direct_url": "https://www.google.com/maps/place/Exhibition+Guru/@19.4388734,72.8715012,17z/data=!3m1!4b1!4m6!3m5!1s0x3be7a95b9eff3b93:0x817b27831b20b5f4!8m2!3d19.4388684!4d72.8740761!16s%2Fg%2F11n4g1w6n8?entry=ttu&g_ep=EgoyMDI2MDgyNi4wIKXMDSoASAFQAw%3D%3D",
+        "embed_url": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3762.6394205423854!2d72.87150127599182!3d19.438873381446755!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7a95b9eff3b93%3A0x817b27831b20b5f4!2sExhibition%20Guru!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+    },
+    "email_config": {
+        "smtp_server": "smtp.gmail.com",
+        "smtp_port": 587,
+        "sender_email": "rajat.aistack@gmail.com",
+        "sender_password": "qfqeuuczapheaucl",
+        "recipient_email": "rajat.171719@gmail.com",
+        "enable_email": true
+    },
+    "pan_india_hubs": [
+        {
+            "city": "Delhi NCR",
+            "venue": "Pragati Maidan & India Expo Mart Greater Noida",
+            "status": "Primary Hub"
+        },
+        {
+            "city": "Mumbai",
+            "venue": "BCEC NESCO Goregaon & Jio World Convention Centre",
+            "status": "Primary Hub"
+        },
+        {
+            "city": "Bengaluru",
+            "venue": "BIEC (Bangalore International Exhibition Centre)",
+            "status": "Primary Hub"
+        },
+        {
+            "city": "Hyderabad",
+            "venue": "HITEX Exhibition Centre",
+            "status": "Regional Hub"
+        },
+        {
+            "city": "Chennai",
+            "venue": "Chennai Trade Centre",
+            "status": "Regional Hub"
+        },
+        {
+            "city": "Pune",
+            "venue": "Auto Cluster Exhibition Centre & PIICC",
+            "status": "Regional Hub"
+        },
+        {
+            "city": "Ahmedabad",
+            "venue": "Helipad Exhibition Centre Gandhinagar",
+            "status": "Regional Hub"
+        },
+        {
+            "city": "Kolkata",
+            "venue": "Biswa Bangla Exhibition Centre",
+            "status": "Regional Hub"
+        }
+    ]
+}
