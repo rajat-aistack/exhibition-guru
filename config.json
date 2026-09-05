@@ -13,8 +13,8 @@
     "contact_info": {
         "phone": "+91 8692990771",
         "alternate_phone": "+91 00000 00000",
-        "email": "info@exhibitionguru.com",
-        "sales_email": "sales@exhibitionguru.com",
+        "email": "marketing.exhibitionguru@gmail.com",
+        "sales_email": "marketing.exhibitionguru@gmail.com",
         "address": "PAN India Exhibition Services | Head Office: Connaught Place, New Delhi",
         "working_hours": "Mon - Sat: 9:30 AM - 7:30 PM IST"
     },
@@ -25,9 +25,9 @@
     "email_config": {
         "smtp_server": "smtp.gmail.com",
         "smtp_port": 587,
-        "sender_email": "rajat.aistack@gmail.com",
+        "sender_email": "exhibitionguru4u@gmail.com",
         "sender_password": "",
-        "recipient_email": "rajat.171719@gmail.com",
+        "recipient_email": "marketing.exhibitionguru@gmail.com",
         "enable_email": true
     },
     "pan_india_hubs": [
