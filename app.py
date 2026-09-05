@@ -75,28 +75,100 @@ def load_config():
     config["email_config"] = email_cfg
     return config
 
+import urllib.request
+
+def send_via_resend(name, phone, email, requirements, recipient, resend_key):
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {resend_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "from": "Exhibition Guru <onboarding@resend.dev>",
+        "to": [recipient],
+        "subject": f"NEW EXHIBITION ENQUIRY: {name}",
+        "html": f"""
+        <h3>New Exhibition Stall Inquiry Received!</h3>
+        <p><strong>Client Name:</strong> {name}</p>
+        <p><strong>Phone:</strong> {phone}</p>
+        <p><strong>Email:</strong> {email}</p>
+        <p><strong>Requirements:</strong><br>{requirements}</p>
+        <hr>
+        <p><small>Sent from Exhibition Guru Web App on Render</small></p>
+        """
+    }
+    try:
+        data_bytes = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            print(f"[RESEND SUCCESS] Status: {resp.status}")
+            return True, "Success via Resend HTTPS API"
+    except Exception as e:
+        print(f"[RESEND ERROR] {e}")
+        return False, str(e)
+
+def send_via_brevo(name, phone, email, requirements, sender_email, recipient, brevo_key):
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": brevo_key,
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "sender": {"name": "Exhibition Guru", "email": sender_email},
+        "to": [{"email": recipient}],
+        "subject": f"NEW EXHIBITION ENQUIRY: {name}",
+        "textContent": f"New Exhibition Stall Inquiry Received!\n\nClient Name: {name}\nPhone: {phone}\nEmail: {email}\nRequirements:\n{requirements}"
+    }
+    try:
+        data_bytes = json.dumps(payload).encode('utf-8')
+        req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            print(f"[BREVO SUCCESS] Status: {resp.status}")
+            return True, "Success via Brevo HTTPS API"
+    except Exception as e:
+        print(f"[BREVO ERROR] {e}")
+        return False, str(e)
+
 def send_inquiry_email(inquiry_data, config):
     email_cfg = config.get("email_config", {})
     if not email_cfg.get("enable_email", True):
         print("[EMAIL] Auto email notification is disabled.")
         return False, "Disabled in environment configuration"
 
+    name = inquiry_data.get("name", "N/A")
+    phone = inquiry_data.get("phone", "N/A")
+    email = inquiry_data.get("email", "N/A")
+    requirements = inquiry_data.get("requirements", "N/A")
+
+    recipient_email = email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com").strip()
+    sender_email = email_cfg.get("sender_email", "exhibitionguru4u@gmail.com").strip()
+
+    # 1. Check for RESEND_API_KEY (HTTPS Port 443 - Never blocked on Render)
+    resend_key = os.environ.get("RESEND_API_KEY")
+    if resend_key and resend_key.strip():
+        print("[EMAIL] Using Resend HTTPS API (Port 443)...")
+        success, msg = send_via_resend(name, phone, email, requirements, recipient_email, resend_key.strip())
+        if success:
+            return True, msg
+
+    # 2. Check for BREVO_API_KEY (HTTPS Port 443 - Never blocked on Render)
+    brevo_key = os.environ.get("BREVO_API_KEY")
+    if brevo_key and brevo_key.strip():
+        print("[EMAIL] Using Brevo HTTPS API (Port 443)...")
+        success, msg = send_via_brevo(name, phone, email, requirements, sender_email, recipient_email, brevo_key.strip())
+        if success:
+            return True, msg
+
+    # 3. Fallback to Direct Gmail SMTP (Works locally; Render free tier blocks outbound SMTP ports 465/587)
     smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com").strip()
     smtp_port = int(email_cfg.get("smtp_port", 465))
-    sender_email = email_cfg.get("sender_email", "exhibitionguru4u@gmail.com").strip()
     sender_password = email_cfg.get("sender_password", "").strip()
-    recipient_email = email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com").strip()
 
     print(f"[EMAIL DEBUG] Sender: '{sender_email}', Recipient: '{recipient_email}', Pass Length: {len(sender_password)}, Server: '{smtp_server}:{smtp_port}'")
 
     if not sender_password or sender_password == "YOUR_GMAIL_APP_PASSWORD":
         print("[EMAIL WARNING] Password is empty or not set in environment. Skipping email delivery.")
         return False, "Password environment variable not configured"
-
-    name = inquiry_data.get("name", "N/A")
-    phone = inquiry_data.get("phone", "N/A")
-    email = inquiry_data.get("email", "N/A")
-    requirements = inquiry_data.get("requirements", "N/A")
 
     subject = f"NEW EXHIBITION ENQUIRY: {name}"
     body = f"""New Exhibition Stall Inquiry Received!
@@ -122,11 +194,11 @@ Website    : Exhibition Guru Web App
 
         # Force IPv4 socket resolution to prevent Render IPv6 network unreachable errors
         with force_ipv4():
-            # 1. Primary path for Gmail: SSL on Port 465
+            # Primary path for Gmail: SSL on Port 465
             if smtp_server == "smtp.gmail.com" or smtp_port == 465:
                 try:
                     print(f"[EMAIL] Attempting SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...")
-                    server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
+                    server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
                     server.login(sender_email, sender_password)
                     server.sendmail(sender_email, recipient_email, msg.as_string())
                     server.quit()
@@ -135,8 +207,8 @@ Website    : Exhibition Guru Web App
                 except Exception as e_ssl:
                     print(f"[EMAIL WARN] SMTP_SSL 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
 
-            # 2. Fallback: STARTTLS on configured port
-            server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)
+            # Fallback: STARTTLS on configured port
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
             server.starttls()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
