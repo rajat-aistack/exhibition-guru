@@ -228,9 +228,9 @@ Website    : Exhibition Guru Web App
         try:
             print(f"[EMAIL] Attempt 1: STARTTLS on port 587 to {smtp_server} (forcing IPv4)...")
             server = smtplib.SMTP(smtp_server, 587, timeout=8)
-            server.ehlo()
+            # server.ehlo()
             server.starttls()
-            server.ehlo()
+            # server.ehlo()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
             server.quit()
