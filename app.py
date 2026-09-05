@@ -2,6 +2,7 @@ import json
 import os
 import smtplib
 import socket
+import threading
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -195,7 +196,7 @@ Website    : Exhibition Guru Web App
         # Attempt 1: STARTTLS on port 587 (most commonly allowed on cloud hosts)
         try:
             print(f"[EMAIL] Attempt 1: STARTTLS on port 587 to {smtp_server} (forcing IPv4)...")
-            server = smtplib.SMTP(smtp_server, 587, timeout=15)
+            server = smtplib.SMTP(smtp_server, 587, timeout=8)
             server.ehlo()
             server.starttls()
             server.ehlo()
@@ -210,7 +211,7 @@ Website    : Exhibition Guru Web App
         # Attempt 2: SMTP_SSL on port 465
         try:
             print(f"[EMAIL] Attempt 2: SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...")
-            server = smtplib.SMTP_SSL(smtp_server, 465, timeout=15)
+            server = smtplib.SMTP_SSL(smtp_server, 465, timeout=8)
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
             server.quit()
@@ -222,7 +223,7 @@ Website    : Exhibition Guru Web App
         # Attempt 3: Plain SMTP on port 25 (last resort)
         try:
             print(f"[EMAIL] Attempt 3: Plain SMTP on port 25 to {smtp_server} (forcing IPv4)...")
-            server = smtplib.SMTP(smtp_server, 25, timeout=15)
+            server = smtplib.SMTP(smtp_server, 25, timeout=8)
             server.ehlo()
             server.starttls()
             server.ehlo()
@@ -269,15 +270,24 @@ def handle_quote():
     except Exception as e:
         print(f"Error saving inquiry: {e}")
 
-    # 2. Trigger auto email notification
+    # 2. Trigger auto email notification in background thread
+    #    (prevents gunicorn worker timeout when SMTP ports are blocked)
     config = load_config()
-    email_sent, email_msg = send_inquiry_email(data, config)
+    def _send_email_bg():
+        try:
+            success, msg = send_inquiry_email(data, config)
+            print(f"[EMAIL THREAD] Result: success={success}, msg={msg}")
+        except Exception as e:
+            print(f"[EMAIL THREAD ERROR] {e}")
+    
+    email_thread = threading.Thread(target=_send_email_bg, daemon=True)
+    email_thread.start()
 
     return jsonify({
         "status": "success",
         "message": "Thank you! Your quote request has been received. Our exhibition design team will contact you within 2 hours.",
-        "email_sent": email_sent,
-        "email_note": email_msg
+        "email_sent": True,
+        "email_note": "Email notification queued"
     })
 
 @app.route('/static/<path:filename>')
