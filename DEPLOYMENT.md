@@ -127,11 +127,11 @@ For deployed applications, sensitive configuration (such as passwords, secret ke
 | Variable Name | Description | Example Value |
 | :--- | :--- | :--- |
 | `SECRET_KEY` | Flask Session / App Secret Key | `exhibition_guru_prod_secret_2026` |
-| `SENDER_EMAIL` | Email used to send quote notifications | `rajat.aistack@gmail.com` |
-| `SENDER_PASSWORD` | Gmail App Password (16-char code) | `your_gmail_app_password` |
-| `RECIPIENT_EMAIL` | Destination email for inquiries | `rajat.171719@gmail.com` |
+| `SENDER_EMAIL` | Email sending quote notifications | `exhibitionguru4u@gmail.com` |
+| `SENDER_PASSWORD` *(or `APP_PASSWORD`)* | Gmail App Password (16-character code) | `ubnwwwuvjmrxjmyg` |
+| `RECIPIENT_EMAIL` | Destination email receiving inquiries | `marketing.exhibitionguru@gmail.com` |
 | `SMTP_SERVER` | SMTP Server | `smtp.gmail.com` |
-| `SMTP_PORT` | SMTP Port | `587` |
+| `SMTP_PORT` | SMTP Port *(Use 465 for SSL)* | `465` |
 | `ENABLE_EMAIL` | Enable auto email delivery | `true` |
 
 4. Click **Save Changes**. Render will automatically rebuild and deploy your application with the new environment variables!

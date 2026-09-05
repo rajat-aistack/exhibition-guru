@@ -24,7 +24,7 @@
     },
     "email_config": {
         "smtp_server": "smtp.gmail.com",
-        "smtp_port": 587,
+        "smtp_port": 465,
         "sender_email": "exhibitionguru4u@gmail.com",
         "sender_password": "",
         "recipient_email": "marketing.exhibitionguru@gmail.com",

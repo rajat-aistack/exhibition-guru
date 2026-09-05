@@ -29,14 +29,23 @@ def load_config():
     email_cfg = config.get("email_config", {})
 
     email_cfg["smtp_server"] = os.environ.get("SMTP_SERVER", email_cfg.get("smtp_server", "smtp.gmail.com"))
-    email_cfg["smtp_port"] = int(os.environ.get("SMTP_PORT", email_cfg.get("smtp_port", 587)))
-    email_cfg["sender_email"] = os.environ.get("SENDER_EMAIL", email_cfg.get("sender_email", "rajat.aistack@gmail.com"))
     
-    # Check SENDER_PASSWORD or GMAIL_APP_PASSWORD from environment first
-    env_password = os.environ.get("SENDER_PASSWORD") or os.environ.get("GMAIL_APP_PASSWORD")
+    # Default to 465 for Gmail SSL reliability on cloud platforms like Render
+    default_port = 465 if email_cfg.get("smtp_server", "smtp.gmail.com") == "smtp.gmail.com" else 587
+    email_cfg["smtp_port"] = int(os.environ.get("SMTP_PORT", email_cfg.get("smtp_port", default_port)))
+    
+    email_cfg["sender_email"] = os.environ.get("SENDER_EMAIL") or os.environ.get("EMAIL_USER") or email_cfg.get("sender_email", "exhibitionguru4u@gmail.com")
+    
+    # Check SENDER_PASSWORD, GMAIL_APP_PASSWORD, APP_PASSWORD, or SMTP_PASSWORD
+    env_password = (
+        os.environ.get("SENDER_PASSWORD") or 
+        os.environ.get("GMAIL_APP_PASSWORD") or 
+        os.environ.get("APP_PASSWORD") or 
+        os.environ.get("SMTP_PASSWORD")
+    )
     email_cfg["sender_password"] = env_password if env_password is not None else email_cfg.get("sender_password", "")
     
-    email_cfg["recipient_email"] = os.environ.get("RECIPIENT_EMAIL", email_cfg.get("recipient_email", email_cfg["sender_email"]))
+    email_cfg["recipient_email"] = os.environ.get("RECIPIENT_EMAIL") or email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com")
 
     enable_email_env = os.environ.get("ENABLE_EMAIL")
     if enable_email_env is not None:
@@ -54,14 +63,14 @@ def send_inquiry_email(inquiry_data, config):
         return False, "Disabled in environment configuration"
 
     smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com")
-    smtp_port = int(email_cfg.get("smtp_port", 587))
-    sender_email = email_cfg.get("sender_email", "")
+    smtp_port = int(email_cfg.get("smtp_port", 465))
+    sender_email = email_cfg.get("sender_email", "exhibitionguru4u@gmail.com")
     sender_password = email_cfg.get("sender_password", "")
-    recipient_email = email_cfg.get("recipient_email", sender_email)
+    recipient_email = email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com")
 
     if not sender_password or sender_password == "YOUR_GMAIL_APP_PASSWORD":
-        print("[EMAIL WARNING] SENDER_PASSWORD is not set in environment or .env. Skipping email delivery.")
-        return False, "SENDER_PASSWORD environment variable not configured"
+        print("[EMAIL WARNING] Password is not set in environment or .env. Skipping email delivery.")
+        return False, "Password environment variable not configured"
 
     name = inquiry_data.get("name", "N/A")
     phone = inquiry_data.get("phone", "N/A")
@@ -90,8 +99,23 @@ Website    : Exhibition Guru Web App
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
-        print(f"[EMAIL] Connecting to SMTP server {smtp_server}:{smtp_port}...")
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        print(f"[EMAIL] Connecting to SMTP server {smtp_server} (Configured Port: {smtp_port})...")
+
+        # For Gmail, SMTP_SSL on port 465 is required on cloud hosting providers like Render
+        if smtp_server == "smtp.gmail.com" or int(smtp_port) == 465:
+            try:
+                print(f"[EMAIL] Attempting SMTP_SSL on port 465 for {sender_email}...")
+                server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, recipient_email, msg.as_string())
+                server.quit()
+                print("Success: Enquiry email sent successfully via SMTP_SSL (465)!")
+                return True, "Success"
+            except Exception as e_ssl:
+                print(f"[EMAIL WARN] SMTP_SSL on 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
+
+        # Fallback to standard SMTP with STARTTLS
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, recipient_email, msg.as_string())
