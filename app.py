@@ -25,16 +25,17 @@ def load_config():
         except Exception as e:
             print(f"Error reading config.json: {e}")
 
-    # Override / populate sensitive settings from environment variables (.env locally or platform environment in deployment)
     email_cfg = config.get("email_config", {})
 
-    email_cfg["smtp_server"] = os.environ.get("SMTP_SERVER", email_cfg.get("smtp_server", "smtp.gmail.com"))
+    smtp_server = os.environ.get("SMTP_SERVER", email_cfg.get("smtp_server", "smtp.gmail.com")).strip()
+    email_cfg["smtp_server"] = smtp_server
     
-    # Default to 465 for Gmail SSL reliability on cloud platforms like Render
-    default_port = 465 if email_cfg.get("smtp_server", "smtp.gmail.com") == "smtp.gmail.com" else 587
-    email_cfg["smtp_port"] = int(os.environ.get("SMTP_PORT", email_cfg.get("smtp_port", default_port)))
+    default_port = 465 if smtp_server == "smtp.gmail.com" else 587
+    smtp_port_val = str(os.environ.get("SMTP_PORT", email_cfg.get("smtp_port", default_port))).strip()
+    email_cfg["smtp_port"] = int(smtp_port_val) if smtp_port_val.isdigit() else default_port
     
-    email_cfg["sender_email"] = os.environ.get("SENDER_EMAIL") or os.environ.get("EMAIL_USER") or email_cfg.get("sender_email", "exhibitionguru4u@gmail.com")
+    sender_email = (os.environ.get("SENDER_EMAIL") or os.environ.get("EMAIL_USER") or email_cfg.get("sender_email", "exhibitionguru4u@gmail.com")).strip()
+    email_cfg["sender_email"] = sender_email
     
     # Check SENDER_PASSWORD, GMAIL_APP_PASSWORD, APP_PASSWORD, or SMTP_PASSWORD
     env_password = (
@@ -43,13 +44,17 @@ def load_config():
         os.environ.get("APP_PASSWORD") or 
         os.environ.get("SMTP_PASSWORD")
     )
-    email_cfg["sender_password"] = env_password if env_password is not None else email_cfg.get("sender_password", "")
+    if env_password:
+        email_cfg["sender_password"] = env_password.strip()
+    else:
+        email_cfg["sender_password"] = str(email_cfg.get("sender_password", "")).strip()
     
-    email_cfg["recipient_email"] = os.environ.get("RECIPIENT_EMAIL") or email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com")
+    recipient_email = (os.environ.get("RECIPIENT_EMAIL") or email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com")).strip()
+    email_cfg["recipient_email"] = recipient_email
 
     enable_email_env = os.environ.get("ENABLE_EMAIL")
     if enable_email_env is not None:
-        email_cfg["enable_email"] = enable_email_env.lower() in ("true", "1", "yes")
+        email_cfg["enable_email"] = enable_email_env.strip().lower() in ("true", "1", "yes")
     elif "enable_email" not in email_cfg:
         email_cfg["enable_email"] = True
 
@@ -62,14 +67,16 @@ def send_inquiry_email(inquiry_data, config):
         print("[EMAIL] Auto email notification is disabled.")
         return False, "Disabled in environment configuration"
 
-    smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com")
+    smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com").strip()
     smtp_port = int(email_cfg.get("smtp_port", 465))
-    sender_email = email_cfg.get("sender_email", "exhibitionguru4u@gmail.com")
-    sender_password = email_cfg.get("sender_password", "")
-    recipient_email = email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com")
+    sender_email = email_cfg.get("sender_email", "exhibitionguru4u@gmail.com").strip()
+    sender_password = email_cfg.get("sender_password", "").strip()
+    recipient_email = email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com").strip()
+
+    print(f"[EMAIL DEBUG] Sender: '{sender_email}', Recipient: '{recipient_email}', Pass Length: {len(sender_password)}, Server: '{smtp_server}:{smtp_port}'")
 
     if not sender_password or sender_password == "YOUR_GMAIL_APP_PASSWORD":
-        print("[EMAIL WARNING] Password is not set in environment or .env. Skipping email delivery.")
+        print("[EMAIL WARNING] Password is empty or not set in environment. Skipping email delivery.")
         return False, "Password environment variable not configured"
 
     name = inquiry_data.get("name", "N/A")
@@ -99,32 +106,30 @@ Website    : Exhibition Guru Web App
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
-        print(f"[EMAIL] Connecting to SMTP server {smtp_server} (Configured Port: {smtp_port})...")
-
-        # For Gmail, SMTP_SSL on port 465 is required on cloud hosting providers like Render
-        if smtp_server == "smtp.gmail.com" or int(smtp_port) == 465:
+        # 1. Primary path for Gmail: SSL on Port 465
+        if smtp_server == "smtp.gmail.com" or smtp_port == 465:
             try:
-                print(f"[EMAIL] Attempting SMTP_SSL on port 465 for {sender_email}...")
-                server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
+                print(f"[EMAIL] Attempting SMTP_SSL on port 465 to {smtp_server}...")
+                server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
                 server.login(sender_email, sender_password)
                 server.sendmail(sender_email, recipient_email, msg.as_string())
                 server.quit()
-                print("Success: Enquiry email sent successfully via SMTP_SSL (465)!")
+                print("[EMAIL SUCCESS] Enquiry email sent successfully via SMTP_SSL (465)!")
                 return True, "Success"
             except Exception as e_ssl:
-                print(f"[EMAIL WARN] SMTP_SSL on 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
+                print(f"[EMAIL WARN] SMTP_SSL 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
 
-        # Fallback to standard SMTP with STARTTLS
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
+        # 2. Fallback: STARTTLS on configured port
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)
         server.starttls()
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, recipient_email, msg.as_string())
         server.quit()
 
-        print("Success: Enquiry email sent successfully!")
+        print("[EMAIL SUCCESS] Enquiry email sent successfully via STARTTLS!")
         return True, "Success"
     except Exception as e:
-        print(f"Error: Something went wrong sending email... {e}")
+        print(f"[EMAIL ERROR] Failed to send email: {e}")
         return False, str(e)
 
 @app.route('/')
