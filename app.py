@@ -1,11 +1,25 @@
 import json
 import os
 import smtplib
+import socket
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from dotenv import load_dotenv
+
+# Helper to force IPv4 DNS resolution for cloud hosting environments (e.g. Render) without IPv6 egress
+class force_ipv4:
+    def __enter__(self):
+        self.old_getaddrinfo = socket.getaddrinfo
+        def allowed_gai(*args, **kwargs):
+            responses = self.old_getaddrinfo(*args, **kwargs)
+            v4_responses = [r for r in responses if r[0] == socket.AF_INET]
+            return v4_responses if v4_responses else responses
+        socket.getaddrinfo = allowed_gai
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        socket.getaddrinfo = self.old_getaddrinfo
 
 # Load environment variables from .env file for local development
 load_dotenv()
@@ -106,28 +120,30 @@ Website    : Exhibition Guru Web App
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
 
-        # 1. Primary path for Gmail: SSL on Port 465
-        if smtp_server == "smtp.gmail.com" or smtp_port == 465:
-            try:
-                print(f"[EMAIL] Attempting SMTP_SSL on port 465 to {smtp_server}...")
-                server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
-                server.login(sender_email, sender_password)
-                server.sendmail(sender_email, recipient_email, msg.as_string())
-                server.quit()
-                print("[EMAIL SUCCESS] Enquiry email sent successfully via SMTP_SSL (465)!")
-                return True, "Success"
-            except Exception as e_ssl:
-                print(f"[EMAIL WARN] SMTP_SSL 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
+        # Force IPv4 socket resolution to prevent Render IPv6 network unreachable errors
+        with force_ipv4():
+            # 1. Primary path for Gmail: SSL on Port 465
+            if smtp_server == "smtp.gmail.com" or smtp_port == 465:
+                try:
+                    print(f"[EMAIL] Attempting SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...")
+                    server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=15)
+                    server.login(sender_email, sender_password)
+                    server.sendmail(sender_email, recipient_email, msg.as_string())
+                    server.quit()
+                    print("[EMAIL SUCCESS] Enquiry email sent successfully via SMTP_SSL (465)!")
+                    return True, "Success"
+                except Exception as e_ssl:
+                    print(f"[EMAIL WARN] SMTP_SSL 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
 
-        # 2. Fallback: STARTTLS on configured port
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_email, msg.as_string())
-        server.quit()
+            # 2. Fallback: STARTTLS on configured port
+            server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+            server.quit()
 
-        print("[EMAIL SUCCESS] Enquiry email sent successfully via STARTTLS!")
-        return True, "Success"
+            print("[EMAIL SUCCESS] Enquiry email sent successfully via STARTTLS!")
+            return True, "Success"
     except Exception as e:
         print(f"[EMAIL ERROR] Failed to send email: {e}")
         return False, str(e)
