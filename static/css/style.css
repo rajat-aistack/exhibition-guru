@@ -1197,34 +1197,251 @@ a {
   z-index: 10;
 }
 
-/* Responsive Queries */
+/* Responsive & Mobile Optimization Rules */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+}
+
+/* Tablet & Medium Screens (<= 992px) */
 @media (max-width: 992px) {
   .hero-wrapper,
-  .calculator-box,
   .contact-wrapper {
     grid-template-columns: 1fr;
+    gap: 2.5rem;
   }
 
   .hero-title {
     font-size: 2.8rem;
   }
 
+  .hero-content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-description {
+    max-width: 100%;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
   .footer-grid {
     grid-template-columns: 1fr 1fr;
+    gap: 2rem;
   }
 }
 
+/* Mobile Screens (<= 768px) */
 @media (max-width: 768px) {
+  .navbar .nav-container {
+    height: 70px;
+  }
+
+  .menu-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-dark);
+    color: var(--text-main);
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .menu-toggle:hover,
+  .menu-toggle.active {
+    background: var(--primary-red);
+    border-color: var(--primary-red);
+    color: #ffffff;
+    box-shadow: 0 0 15px var(--primary-red-glow);
+  }
+
+  /* Mobile Dropdown Navigation Menu */
   .nav-links {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    background: rgba(11, 11, 14, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    border-bottom: 1px solid var(--border-red);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .nav-links.active {
+    max-height: 460px;
+    opacity: 1;
+    visibility: visible;
+    padding: 1rem 1.2rem;
+  }
+
+  .nav-links li {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .nav-links li:last-child {
+    border-bottom: none;
+  }
+
+  .nav-links a {
+    display: block;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    width: 100%;
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    transition: all var(--transition-fast);
+  }
+
+  .nav-links a:hover,
+  .nav-links a.active {
+    background: rgba(255, 30, 39, 0.15);
+    color: var(--primary-red);
+    padding-left: 1.4rem;
+  }
+
+  .nav-links a::after {
     display: none;
   }
-  .menu-toggle {
-    display: block;
+
+  .hero {
+    padding-top: 110px;
+    padding-bottom: 50px;
   }
+
   .hero-title {
     font-size: 2.2rem;
   }
+
+  .hero-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.8rem;
+    text-align: center;
+  }
+
+  .stat-item h3 {
+    font-size: 1.5rem;
+  }
+
+  .stat-item p {
+    font-size: 0.75rem;
+  }
+
+  .section {
+    padding: 60px 0;
+  }
+
+  .section-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .section-title {
+    font-size: 2rem;
+  }
+
+  .modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-content {
+    max-height: 85vh;
+    overflow-y: auto;
+    width: 95%;
+  }
+
   .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .contact-card {
+    padding: 2rem 1.5rem;
+  }
+
+  .whatsapp-float {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: 52px;
+    height: 52px;
+    font-size: 1.7rem;
+  }
+}
+
+/* Small Mobile Screens (<= 480px) */
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.85rem;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .hero-actions .btn-primary,
+  .hero-actions .btn-secondary {
+    width: 100%;
+  }
+
+  .nav-actions .btn-primary {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    gap: 0.4rem;
+  }
+
+  .showcase-frame {
+    padding: 1.5rem 1rem;
+  }
+
+  .showcase-logo {
+    width: 170px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.82rem;
+  }
+
+  .portfolio-grid,
+  .services-grid,
+  .pan-india-grid {
     grid-template-columns: 1fr;
   }
 }
+
