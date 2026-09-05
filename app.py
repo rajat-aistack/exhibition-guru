@@ -1,13 +1,38 @@
-import json
 import os
+import sys
+import json
+import logging
 import smtplib
 import socket
 import threading
+import urllib.request
+import urllib.error
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, render_template, jsonify, request, send_from_directory
 from dotenv import load_dotenv
+
+# Force unbuffered stdout so all print & logging statements appear instantly in Render logs
+os.environ["PYTHONUNBUFFERED"] = "1"
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
+
+def log(msg, level="INFO"):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    formatted = f"[{timestamp}] [{level}] {msg}"
+    try:
+        print(formatted, flush=True)
+    except UnicodeEncodeError:
+        # Fallback for Windows CP1252 terminal encoding limits
+        print(formatted.encode('ascii', errors='replace').decode('ascii'), flush=True)
+    try:
+        sys.stdout.flush()
+    except Exception:
+        pass
 
 # Helper to force IPv4 DNS resolution for cloud hosting environments (e.g. Render) without IPv6 egress
 class force_ipv4:
@@ -82,8 +107,10 @@ import urllib.error
 def send_via_resend(name, phone, email, requirements, recipient, resend_key):
     url = "https://api.resend.com/emails"
     from_address = os.environ.get("RESEND_FROM_EMAIL", "Exhibition Guru <onboarding@resend.dev>").strip()
-    # Allow overriding recipient specifically for Resend testing domain restriction
     resend_to = os.environ.get("RESEND_TO_EMAIL", recipient).strip()
+
+    log(f"📤 [RESEND SEND] Initiating API request to https://api.resend.com/emails", "INFO")
+    log(f"   Payload -> From: '{from_address}' | To: ['{resend_to}'] | Subject: 'NEW EXHIBITION ENQUIRY: {name}'", "INFO")
 
     headers = {
         "Authorization": f"Bearer {resend_key}",
@@ -108,34 +135,39 @@ def send_via_resend(name, phone, email, requirements, recipient, resend_key):
         data_bytes = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
         with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"[RESEND SUCCESS] Status: {resp.status} - Sent to {resend_to}")
+            response_body = resp.read().decode('utf-8')
+            log(f"✅ [RESEND SUCCESS] HTTP {resp.status} OK - Email delivered to {resend_to}. Response: {response_body}", "SUCCESS")
             return True, f"Success via Resend HTTPS API (to {resend_to})"
     except urllib.error.HTTPError as e:
         err_body = e.read().decode('utf-8', errors='ignore')
-        print(f"[RESEND ERROR] HTTP {e.code}: {e.reason} - {err_body}")
+        log(f"⚠️ [RESEND HTTP ERROR] Status {e.code}: {e.reason} - Payload: {err_body}", "WARN")
         
-        # If using onboarding domain and received validation error, try sending to account email
+        # If using onboarding domain and received validation error, try sending to registered account email
         if "onboarding@resend.dev" in from_address and "validation_error" in err_body:
             alt_to = os.environ.get("RESEND_FALLBACK_TO", "rajat.aistack@gmail.com").strip()
             if alt_to and alt_to != resend_to:
-                print(f"[RESEND RETRY] Testing domain only allows registered email. Retrying with: {alt_to}")
+                log(f"🔄 [RESEND RETRY] Sandbox restricted delivery to registered email. Retrying with fallback target: {alt_to}", "INFO")
                 payload["to"] = [alt_to]
                 try:
                     data_bytes = json.dumps(payload).encode('utf-8')
                     req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
                     with urllib.request.urlopen(req, timeout=10) as resp:
-                        print(f"[RESEND SUCCESS] Status: {resp.status} - Sent to fallback {alt_to}")
-                        return True, f"Success via Resend HTTPS API (to {alt_to})"
+                        resp_body = resp.read().decode('utf-8')
+                        log(f"✅ [RESEND RETRY SUCCESS] HTTP {resp.status} OK - Email delivered to fallback address {alt_to}. Response: {resp_body}", "SUCCESS")
+                        return True, f"Success via Resend HTTPS API (to fallback {alt_to})"
                 except Exception as retry_err:
-                    print(f"[RESEND RETRY ERROR] {retry_err}")
+                    log(f"❌ [RESEND RETRY ERROR] Failed sending to fallback address: {retry_err}", "ERROR")
 
         return False, f"Resend API error HTTP {e.code}: {err_body}"
     except Exception as e:
-        print(f"[RESEND ERROR] {e}")
+        log(f"❌ [RESEND EXCEPTION] {e}", "ERROR")
         return False, str(e)
 
 def send_via_brevo(name, phone, email, requirements, sender_email, recipient, brevo_key):
     url = "https://api.brevo.com/v3/smtp/email"
+    log(f"📤 [BREVO SEND] Initiating API request to https://api.brevo.com/v3/smtp/email", "INFO")
+    log(f"   Payload -> Sender: '{sender_email}' | To: ['{recipient}']", "INFO")
+
     headers = {
         "api-key": brevo_key,
         "Content-Type": "application/json",
@@ -151,20 +183,21 @@ def send_via_brevo(name, phone, email, requirements, sender_email, recipient, br
         data_bytes = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(url, data=data_bytes, headers=headers, method='POST')
         with urllib.request.urlopen(req, timeout=10) as resp:
-            print(f"[BREVO SUCCESS] Status: {resp.status}")
+            response_body = resp.read().decode('utf-8')
+            log(f"✅ [BREVO SUCCESS] HTTP {resp.status} OK - Response: {response_body}", "SUCCESS")
             return True, "Success via Brevo HTTPS API"
     except urllib.error.HTTPError as e:
         err_body = e.read().decode('utf-8', errors='ignore')
-        print(f"[BREVO ERROR] HTTP {e.code}: {e.reason} - {err_body}")
+        log(f"❌ [BREVO HTTP ERROR] Status {e.code}: {e.reason} - Payload: {err_body}", "ERROR")
         return False, f"Brevo API error HTTP {e.code}: {err_body}"
     except Exception as e:
-        print(f"[BREVO ERROR] {e}")
+        log(f"❌ [BREVO EXCEPTION] {e}", "ERROR")
         return False, str(e)
 
 def send_inquiry_email(inquiry_data, config):
     email_cfg = config.get("email_config", {})
     if not email_cfg.get("enable_email", True):
-        print("[EMAIL] Auto email notification is disabled.")
+        log("⏸️ [EMAIL DISABLED] Auto email notification is disabled in configuration.", "WARN")
         return False, "Disabled in environment configuration"
 
     name = inquiry_data.get("name", "N/A")
@@ -175,10 +208,12 @@ def send_inquiry_email(inquiry_data, config):
     recipient_email = email_cfg.get("recipient_email", "marketing.exhibitionguru@gmail.com").strip()
     sender_email = email_cfg.get("sender_email", "exhibitionguru4u@gmail.com").strip()
 
+    log(f"✉️ [EMAIL TASK START] Preparing notification for client '{name}' (Phone: {phone}, Email: {email})", "INFO")
+
     # 1. Check for RESEND_API_KEY (HTTPS Port 443 - Never blocked on Render)
     resend_key = os.environ.get("RESEND_API_KEY")
     if resend_key and resend_key.strip():
-        print("[EMAIL] Using Resend HTTPS API (Port 443)...")
+        log("🌐 [EMAIL PROVIDER] Using Resend HTTPS API (Port 443)...", "INFO")
         success, msg = send_via_resend(name, phone, email, requirements, recipient_email, resend_key.strip())
         if success:
             return True, msg
@@ -186,7 +221,7 @@ def send_inquiry_email(inquiry_data, config):
     # 2. Check for BREVO_API_KEY (HTTPS Port 443 - Never blocked on Render)
     brevo_key = os.environ.get("BREVO_API_KEY")
     if brevo_key and brevo_key.strip():
-        print("[EMAIL] Using Brevo HTTPS API (Port 443)...")
+        log("🌐 [EMAIL PROVIDER] Using Brevo HTTPS API (Port 443)...", "INFO")
         success, msg = send_via_brevo(name, phone, email, requirements, sender_email, recipient_email, brevo_key.strip())
         if success:
             return True, msg
@@ -195,10 +230,10 @@ def send_inquiry_email(inquiry_data, config):
     smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com").strip()
     sender_password = email_cfg.get("sender_password", "").strip()
 
-    print(f"[EMAIL DEBUG] Sender: '{sender_email}', Recipient: '{recipient_email}', Pass Length: {len(sender_password)}, Server: '{smtp_server}'")
+    log(f"🔌 [SMTP FALLBACK] Attempting direct Gmail SMTP | Sender: '{sender_email}' | Recipient: '{recipient_email}' | Server: '{smtp_server}'", "INFO")
 
     if not sender_password or sender_password == "YOUR_GMAIL_APP_PASSWORD":
-        print("[EMAIL WARNING] Password is empty or not set in environment. Skipping email delivery.")
+        log("⚠️ [SMTP WARNING] Password is empty or not set in environment. Skipping SMTP delivery.", "WARN")
         return False, "Password environment variable not configured"
 
     subject = f"NEW EXHIBITION ENQUIRY: {name}"
@@ -224,49 +259,45 @@ Website    : Exhibition Guru Web App
 
     # Force IPv4 socket resolution to prevent Render IPv6 network unreachable errors
     with force_ipv4():
-        # Attempt 1: STARTTLS on port 587 (most commonly allowed on cloud hosts)
+        # Attempt 1: STARTTLS on port 587
         try:
-            print(f"[EMAIL] Attempt 1: STARTTLS on port 587 to {smtp_server} (forcing IPv4)...")
+            log(f"   [SMTP Attempt 1] STARTTLS on port 587 to {smtp_server} (forcing IPv4)...", "INFO")
             server = smtplib.SMTP(smtp_server, 587, timeout=8)
-            # server.ehlo()
             server.starttls()
-            # server.ehlo()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
             server.quit()
-            print("[EMAIL SUCCESS] Sent via STARTTLS port 587!")
+            log("✅ [SMTP SUCCESS] Sent via STARTTLS port 587!", "SUCCESS")
             return True, "Success via STARTTLS 587"
         except Exception as e1:
-            print(f"[EMAIL WARN] Port 587 failed: {e1}")
+            log(f"⚠️ [SMTP WARN] Port 587 failed: {e1}", "WARN")
 
         # Attempt 2: SMTP_SSL on port 465
         try:
-            print(f"[EMAIL] Attempt 2: SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...")
+            log(f"   [SMTP Attempt 2] SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...", "INFO")
             server = smtplib.SMTP_SSL(smtp_server, 465, timeout=8)
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
             server.quit()
-            print("[EMAIL SUCCESS] Sent via SMTP_SSL port 465!")
+            log("✅ [SMTP SUCCESS] Sent via SMTP_SSL port 465!", "SUCCESS")
             return True, "Success via SSL 465"
         except Exception as e2:
-            print(f"[EMAIL WARN] Port 465 failed: {e2}")
+            log(f"⚠️ [SMTP WARN] Port 465 failed: {e2}", "WARN")
 
         # Attempt 3: Plain SMTP on port 25 (last resort)
         try:
-            print(f"[EMAIL] Attempt 3: Plain SMTP on port 25 to {smtp_server} (forcing IPv4)...")
+            log(f"   [SMTP Attempt 3] Plain SMTP on port 25 to {smtp_server} (forcing IPv4)...", "INFO")
             server = smtplib.SMTP(smtp_server, 25, timeout=8)
-            server.ehlo()
             server.starttls()
-            server.ehlo()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
             server.quit()
-            print("[EMAIL SUCCESS] Sent via port 25!")
+            log("✅ [SMTP SUCCESS] Sent via port 25!", "SUCCESS")
             return True, "Success via port 25"
         except Exception as e3:
-            print(f"[EMAIL WARN] Port 25 failed: {e3}")
+            log(f"⚠️ [SMTP WARN] Port 25 failed: {e3}", "WARN")
 
-    print("[EMAIL ERROR] All SMTP ports (587, 465, 25) are blocked. Use RESEND_API_KEY or BREVO_API_KEY env variable for HTTPS-based email delivery.")
+    log("❌ [EMAIL ERROR] All SMTP ports (587, 465, 25) are blocked on Render. Ensure RESEND_API_KEY is configured.", "ERROR")
     return False, "All SMTP ports blocked by hosting provider. Add RESEND_API_KEY or BREVO_API_KEY env variable."
 
 @app.route('/')
@@ -284,6 +315,8 @@ def handle_quote():
     data = request.get_json() or request.form.to_dict()
     data['timestamp'] = datetime.now().isoformat()
     
+    log(f"📥 [QUOTE API CALL] Received inquiry submission from '{data.get('name', 'Unknown')}' | Phone: '{data.get('phone', 'N/A')}' | Email: '{data.get('email', 'N/A')}'", "INFO")
+
     # 1. Save inquiry locally in inquiries.json
     inquiries = []
     if os.path.exists(INQUIRIES_FILE):
@@ -298,21 +331,22 @@ def handle_quote():
     try:
         with open(INQUIRIES_FILE, 'w', encoding='utf-8') as f:
             json.dump(inquiries, f, indent=2)
+        log(f"💾 [INQUIRY STORED] Successfully appended inquiry to inquiries.json (Total entries: {len(inquiries)})", "INFO")
     except Exception as e:
-        print(f"Error saving inquiry: {e}")
+        log(f"❌ [STORAGE ERROR] Failed writing to inquiries.json: {e}", "ERROR")
 
     # 2. Trigger auto email notification in background thread
-    #    (prevents gunicorn worker timeout when SMTP ports are blocked)
     config = load_config()
     def _send_email_bg():
         try:
             success, msg = send_inquiry_email(data, config)
-            print(f"[EMAIL THREAD] Result: success={success}, msg={msg}")
+            log(f"🏁 [EMAIL THREAD COMPLETE] Email delivery result -> success={success}, details='{msg}'", "INFO" if success else "WARN")
         except Exception as e:
-            print(f"[EMAIL THREAD ERROR] {e}")
+            log(f"❌ [EMAIL THREAD EXCEPTION] Unhandled error in background thread: {e}", "ERROR")
     
     email_thread = threading.Thread(target=_send_email_bg, daemon=True)
     email_thread.start()
+    log("🧵 [EMAIL THREAD LAUNCHED] Background thread spawned for non-blocking email delivery", "INFO")
 
     return jsonify({
         "status": "success",
@@ -327,5 +361,5 @@ def serve_static(filename):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print(f"[INFO] Exhibition Guru server starting on http://127.0.0.1:{port}")
+    log(f"🚀 Exhibition Guru server starting on http://127.0.0.1:{port}", "INFO")
     app.run(host='0.0.0.0', port=port, debug=True)
