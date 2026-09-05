@@ -159,12 +159,11 @@ def send_inquiry_email(inquiry_data, config):
         if success:
             return True, msg
 
-    # 3. Fallback to Direct Gmail SMTP (Works locally; Render free tier blocks outbound SMTP ports 465/587)
+    # 3. Fallback to Direct Gmail SMTP (try multiple ports; Render may block some)
     smtp_server = email_cfg.get("smtp_server", "smtp.gmail.com").strip()
-    smtp_port = int(email_cfg.get("smtp_port", 465))
     sender_password = email_cfg.get("sender_password", "").strip()
 
-    print(f"[EMAIL DEBUG] Sender: '{sender_email}', Recipient: '{recipient_email}', Pass Length: {len(sender_password)}, Server: '{smtp_server}:{smtp_port}'")
+    print(f"[EMAIL DEBUG] Sender: '{sender_email}', Recipient: '{recipient_email}', Pass Length: {len(sender_password)}, Server: '{smtp_server}'")
 
     if not sender_password or sender_password == "YOUR_GMAIL_APP_PASSWORD":
         print("[EMAIL WARNING] Password is empty or not set in environment. Skipping email delivery.")
@@ -185,40 +184,58 @@ Received At: {datetime.now().strftime('%d-%b-%Y %H:%M:%S')}
 Website    : Exhibition Guru Web App
 """
 
-    try:
-        msg = MIMEMultipart()
-        msg['From'] = sender_email
-        msg['To'] = recipient_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(body, 'plain'))
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = recipient_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
 
-        # Force IPv4 socket resolution to prevent Render IPv6 network unreachable errors
-        with force_ipv4():
-            # Primary path for Gmail: SSL on Port 465
-            if smtp_server == "smtp.gmail.com" or smtp_port == 465:
-                try:
-                    print(f"[EMAIL] Attempting SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...")
-                    server = smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=10)
-                    server.login(sender_email, sender_password)
-                    server.sendmail(sender_email, recipient_email, msg.as_string())
-                    server.quit()
-                    print("[EMAIL SUCCESS] Enquiry email sent successfully via SMTP_SSL (465)!")
-                    return True, "Success"
-                except Exception as e_ssl:
-                    print(f"[EMAIL WARN] SMTP_SSL 465 failed: {e_ssl}. Retrying with STARTTLS on port {smtp_port}...")
-
-            # Fallback: STARTTLS on configured port
-            server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
+    # Force IPv4 socket resolution to prevent Render IPv6 network unreachable errors
+    with force_ipv4():
+        # Attempt 1: STARTTLS on port 587 (most commonly allowed on cloud hosts)
+        try:
+            print(f"[EMAIL] Attempt 1: STARTTLS on port 587 to {smtp_server} (forcing IPv4)...")
+            server = smtplib.SMTP(smtp_server, 587, timeout=15)
+            server.ehlo()
             server.starttls()
+            server.ehlo()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, recipient_email, msg.as_string())
             server.quit()
+            print("[EMAIL SUCCESS] Sent via STARTTLS port 587!")
+            return True, "Success via STARTTLS 587"
+        except Exception as e1:
+            print(f"[EMAIL WARN] Port 587 failed: {e1}")
 
-            print("[EMAIL SUCCESS] Enquiry email sent successfully via STARTTLS!")
-            return True, "Success"
-    except Exception as e:
-        print(f"[EMAIL ERROR] Failed to send email: {e}")
-        return False, str(e)
+        # Attempt 2: SMTP_SSL on port 465
+        try:
+            print(f"[EMAIL] Attempt 2: SMTP_SSL on port 465 to {smtp_server} (forcing IPv4)...")
+            server = smtplib.SMTP_SSL(smtp_server, 465, timeout=15)
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+            server.quit()
+            print("[EMAIL SUCCESS] Sent via SMTP_SSL port 465!")
+            return True, "Success via SSL 465"
+        except Exception as e2:
+            print(f"[EMAIL WARN] Port 465 failed: {e2}")
+
+        # Attempt 3: Plain SMTP on port 25 (last resort)
+        try:
+            print(f"[EMAIL] Attempt 3: Plain SMTP on port 25 to {smtp_server} (forcing IPv4)...")
+            server = smtplib.SMTP(smtp_server, 25, timeout=15)
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, recipient_email, msg.as_string())
+            server.quit()
+            print("[EMAIL SUCCESS] Sent via port 25!")
+            return True, "Success via port 25"
+        except Exception as e3:
+            print(f"[EMAIL WARN] Port 25 failed: {e3}")
+
+    print("[EMAIL ERROR] All SMTP ports (587, 465, 25) are blocked. Use RESEND_API_KEY or BREVO_API_KEY env variable for HTTPS-based email delivery.")
+    return False, "All SMTP ports blocked by hosting provider. Add RESEND_API_KEY or BREVO_API_KEY env variable."
 
 @app.route('/')
 def index():
